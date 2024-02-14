@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<!-- Valentine 2024                          -->
+<!-- This is a valentine card / browser game -->
+<!-- that I created for my beloved partner   -->
+<!-- Pavel Voronin <3                        -->
+<!--                                         -->
+<!-- Ivan Voronin                            -->
+<!-- 14-02-2024                              -->
+<!-- License: CC BY-NC-SA                    -->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+        <title>Valentine 2024</title>
+        <link rel="icon" type="image/x-icon" href="favicon.svg">
+        <!-- Google fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Ubuntu:wght@300&display=swap" rel="stylesheet">
+        <!-- d3js -->
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <script src="https://d3js.org/d3-timer.v1.min.js"></script>
+        <script src="https://d3js.org/d3-ease.v1.min.js"></script>
+
+        <style>
+            body {
+                font-family: 'Ubuntu', sans-serif;
+            }
+            #viewport {
+                position: fixed;
+                left: 0px;
+                right: 0px;
+                top: 0px;
+                bottom: 0px;
+                opacity: 0.6;
+            }
+            #target .center {
+                fill: white;
+                stroke: none;
+                filter: blur(9px);
+                opacity: 0.4;
+            }
+            #target .halo {
+                stroke: rgb(248, 196, 220);
+                stroke-width: 5px;
+                fill: none;
+                filter: blur(15px);
+                opacity: 0.5;
+            }
+            .glow {
+                fill: rgb(#ff80b0);
+            }
+            #bigHeart {
+                fill: white;
+            }
+            #bigHeart > .glow {
+                fill: #ffffff
+            }
+            .heart {
+                overflow: visible;
+                fill: white;
+                stroke:white;
+                stroke-width: 1px;
+                stroke-linecap: round;
+            }
+            .counter {
+                font-size: 24pt;
+                text-anchor: middle;
+                color: white;
+                fill: white;
+            }
+            .indicatorHeart {
+                overflow: visible;
+                fill: white;
+                stroke:white;
+                stroke-width: 1px;
+            }
+            .indicatorHeart  g.glow {
+                opacity: 0.3;
+            }
+
+        </style>
+    </head>
+
+    <body onresize="resizeScreen()">
+        <div id='viewport'>
+            <svg width = '100%' height='100%' 
+                xmlns="http://www.w3.org/2000/svg"
+                xmlns:xlink="http://www.w3.org/1999/xlink" >
+                <defs>
+                    <path id="heart"
+                        d='M 0.5 -4.3 C 1.3 -5.2 2.5 -6 4.957 -6.005 C 7.7 -6 9.957 -4.005 9.957 -0.005 C 9.957 5.995 3.4 7.9 0.3 11.8 C 0 12.2 0 12.2 -0.3 11.8 C -3.4 7.9 -10.043 5.995 -10.043 -0.005 C -10.043 -4.005 -7.7 -6 -4.9 -6 C -2.543 -6.005 -1.3 -5.2 -0.5 -4.3 C 0 -3.8 0 -3.8 0.5 -4.3 Z' />
+                    <path id="Heart" fill-rule="evenodd"
+                        d="M 0.5 -4.3 C 1.3 -5.2 2.5 -6 4.957 -6.005 C 7.7 -6 9.957 -4.005 9.957 -0.005 C 9.957 5.995 3.4 7.9 0.3 11.8 C 0 12.2 0 12.2 -0.3 11.8 C -3.4 7.9 -10.043 5.995 -10.043 -0.005 C -10.043 -4.005 -7.7 -6 -4.9 -6 C -2.543 -6.005 -1.3 -5.2 -0.5 -4.3 C 0 -3.8 0 -3.8 0.5 -4.3 Z M 0.5 -3.1 C 1.7 -4.4 2.6 -5.3 4.9 -5.3 C 7.3 -5.3 9.4 -3.7 9.4 -0.1 C 9.3 5 4.6 6.7 0.3 10.8 C 0 11.1 0 11.1 -0.3 10.8 C -4.6 6.7 -9.4 5 -9.4 -0.1 C -9.3 -3.7 -7.3 -5.3 -4.9 -5.3 C -2.8 -5.3 -1.7 -4.5 -0.5 -3.1 C 0 -2.6 0 -2.6 0.5 -3.1 Z" />
+                    <g id="smallHeart">
+                        <g class="glow">
+                            <use href="#heart" filter="blur(10px)" />
+                            <use href="#heart" filter="blur(7px)" />
+                            <!-- <use href="#heart" filter="blur(5px)" /> -->
+                            <use href="#heart" filter="blur(3px)" />
+                            <!-- <use href="#Heart" filter="blur(1.5px)" /> -->
+                            <!-- <use href="#Heart" filter="blur(0.5px)" /> -->
+                        </g>
+                        <use href="#heart" class="lightsource" />
+                    </g>
+                    
+                    <radialGradient id="viewportGradient" cx="50%" cy="50%" r="0">
+                        <stop id="center" offset="0%" />
+                        <stop id="edge" offset="100%" />
+                    </radialGradient>
+
+                    <radialGradient id="endDisplayGradient" cx="50%" cy="50%" r="100%">
+                        <stop id="center" offset="0%" stop-color="white"/>
+                        <stop id="edge" offset="100%" stop-color="white"/>
+                    </radialGradient>    
+
+                    <path id='topCurve'
+                    transform="translate(0 10)"
+                    d='M25,55 A175,175 0 0,1 175,55'/> 
+                <path id='bottomCurve1'
+                    transform="translate(0 5)"
+                    d='M25,140 A175,175 0 0,0 175,140'/> 
+                <path id='bottomCurve2'
+                    transform="translate(0 0)"
+                    d='M14,161 A200,200 0 0,0 186,161'/> 
+                    <filter id='blur1' >
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="1" />
+                    </filter>
+
+                    <mask id="endDisplayMask">
+                        <rect x="0" y="0" width="100%" height="100%" fill="url(#endDisplayGradient)" opacity="1"/>    
+                        <text id="endText"
+                        opacity="0"
+                        font-family="Comfortaa"
+                        font-weight="bold"
+                        stroke="black"
+                        fill="black"
+                        filter="url(#blur1)"
+                        text-anchor="middle">
+                            <textPath xlink:href="#topCurve" font-size="22" startOffset='50%'>
+                                Love is Bliss</textPath>
+                            <textPath xlink:href="#bottomCurve1" font-size="14" startOffset='52%'>
+                                Любовь - это
+                            </textPath>
+                            <textPath xlink:href="#bottomCurve2" font-size="20" startOffset='50%'>
+                            Блаженство
+                            </textPath>
+                        </text>
+                    </mask>
+
+                </defs>
+
+                <rect id='background' x="0" y="0" width="100%" height="100%" fill="url(#viewportGradient)" opacity="0"/>
+                <g id="things" opacity="0">
+                    <g id="bigHeart">
+                        <g class="inner">
+                            <g class='glow'>
+                                <path filter="blur(3px)" fill-rule="evenodd"
+                                d="M 0.5 -4.3 C 1.3 -5.2 2.5 -6 4.957 -6.005 C 7.7 -6 9.957 -4.005 9.957 -0.005 C 9.957 5.995 3.4 7.9 0.3 11.8 C 0 12.2 0 12.2 -0.3 11.8 C -3.4 7.9 -10.043 5.995 -10.043 -0.005 C -10.043 -4.005 -7.7 -6 -4.9 -6 C -2.543 -6.005 -1.3 -5.2 -0.5 -4.3 C 0 -3.8 0 -3.8 0.5 -4.3 Z M 0.5 -3.1 C 1.7 -4.4 2.6 -5.3 4.9 -5.3 C 7.3 -5.3 9.4 -3.7 9.4 -0.1 C 9.3 5 4.6 6.7 0.3 10.8 C 0 11.1 0 11.1 -0.3 10.8 C -4.6 6.7 -9.4 5 -9.4 -0.1 C -9.3 -3.7 -7.3 -5.3 -4.9 -5.3 C -2.8 -5.3 -1.7 -4.5 -0.5 -3.1 C 0 -2.6 0 -2.6 0.5 -3.1 Z"/>
+                                <path filter="blur(1.5px)" fill-rule="evenodd"
+                                d="M 0.5 -4.3 C 1.3 -5.2 2.5 -6 4.957 -6.005 C 7.7 -6 9.957 -4.005 9.957 -0.005 C 9.957 5.995 3.4 7.9 0.3 11.8 C 0 12.2 0 12.2 -0.3 11.8 C -3.4 7.9 -10.043 5.995 -10.043 -0.005 C -10.043 -4.005 -7.7 -6 -4.9 -6 C -2.543 -6.005 -1.3 -5.2 -0.5 -4.3 C 0 -3.8 0 -3.8 0.5 -4.3 Z M 0.5 -3.1 C 1.7 -4.4 2.6 -5.3 4.9 -5.3 C 7.3 -5.3 9.4 -3.7 9.4 -0.1 C 9.3 5 4.6 6.7 0.3 10.8 C 0 11.1 0 11.1 -0.3 10.8 C -4.6 6.7 -9.4 5 -9.4 -0.1 C -9.3 -3.7 -7.3 -5.3 -4.9 -5.3 C -2.8 -5.3 -1.7 -4.5 -0.5 -3.1 C 0 -2.6 0 -2.6 0.5 -3.1 Z" />
+                                <path filter="blur(0.5px)" fill-rule="evenodd"
+                                d="M 0.5 -4.3 C 1.3 -5.2 2.5 -6 4.957 -6.005 C 7.7 -6 9.957 -4.005 9.957 -0.005 C 9.957 5.995 3.4 7.9 0.3 11.8 C 0 12.2 0 12.2 -0.3 11.8 C -3.4 7.9 -10.043 5.995 -10.043 -0.005 C -10.043 -4.005 -7.7 -6 -4.9 -6 C -2.543 -6.005 -1.3 -5.2 -0.5 -4.3 C 0 -3.8 0 -3.8 0.5 -4.3 Z M 0.5 -3.1 C 1.7 -4.4 2.6 -5.3 4.9 -5.3 C 7.3 -5.3 9.4 -3.7 9.4 -0.1 C 9.3 5 4.6 6.7 0.3 10.8 C 0 11.1 0 11.1 -0.3 10.8 C -4.6 6.7 -9.4 5 -9.4 -0.1 C -9.3 -3.7 -7.3 -5.3 -4.9 -5.3 C -2.8 -5.3 -1.7 -4.5 -0.5 -3.1 C 0 -2.6 0 -2.6 0.5 -3.1 Z" />
+                            </g>
+                            <path class='lightsource' fill-rule="evenodd"
+                            d="M 0.5 -4.3 C 1.3 -5.2 2.5 -6 4.957 -6.005 C 7.7 -6 9.957 -4.005 9.957 -0.005 C 9.957 5.995 3.4 7.9 0.3 11.8 C 0 12.2 0 12.2 -0.3 11.8 C -3.4 7.9 -10.043 5.995 -10.043 -0.005 C -10.043 -4.005 -7.7 -6 -4.9 -6 C -2.543 -6.005 -1.3 -5.2 -0.5 -4.3 C 0 -3.8 0 -3.8 0.5 -4.3 Z M 0.5 -3.1 C 1.7 -4.4 2.6 -5.3 4.9 -5.3 C 7.3 -5.3 9.4 -3.7 9.4 -0.1 C 9.3 5 4.6 6.7 0.3 10.8 C 0 11.1 0 11.1 -0.3 10.8 C -4.6 6.7 -9.4 5 -9.4 -0.1 C -9.3 -3.7 -7.3 -5.3 -4.9 -5.3 C -2.8 -5.3 -1.7 -4.5 -0.5 -3.1 C 0 -2.6 0 -2.6 0.5 -3.1 Z" />
+                        </g>
+                    </g>
+                    <g id="target" opacity="0">
+                        <circle class="halo"/>
+                        <circle class="center"/>
+                    </g>
+                </g>    
+                <rect id='endDisplay' x="0" y="0" width="100%" height="100%" fill="white" mask="url(#endDisplayMask)" opacity="0"/>
+            </svg>
+        </div>
+
+        <script> 
+            // https://radzion.medium.com/linear-algebra-vectors-f7610e9a0f23
+            class Vector {
+                constructor(...components) {
+                    this.components = components
+                }
+
+                x() { return this.components[0] }
+                y() { return this.components[1] }
+
+                add({ components }) {
+                    return new Vector(
+                        ...components.map((c, i) => this.components[i] + c)
+                    )
+                }
+
+                subtract({ components }) {
+                    return new Vector(
+                        ...components.map((c, i) => this.components[i] - c)
+                    )
+                }
+
+                scaleBy(number) {
+                    return new Vector(
+                        ...this.components.map(c => c * number)
+                    )
+                }
+
+                length() {
+                    return Math.hypot(...this.components)
+                }
+
+                dotProd({ components }) {
+                    return components.reduce((acc, c, i) => acc + c * this.components[i], 0)
+                }
+
+                normalize() {
+                    return this.scaleBy(1 / this.length())
+                }
+
+                transform(matrix) {
+                    const columns = matrix.columns()
+                    if (columns.length !== this.components.length) {
+                        throw new Error('Matrix columns length should be equal to vector components length.')
+                    }
+
+                    const sum = arr => arr.reduce((acc, val) => acc + val, 0)
+                    const multiplied = columns.map((col, i) => col.map(c => c * this.components[i]))
+                    const newComponents = multiplied[0].map((_, i) => sum(multiplied.map(c => c[i])))
+                    return new Vector(...newComponents)
+                }
+
+                rotate(alpha) {
+                    const aRad = alpha * Math.PI / 180
+                    const M = new Matrix(
+                        [Math.cos(aRad), -Math.sin(aRad)],
+                        [Math.sin(aRad), Math.cos(aRad)]
+                    )
+                    return this.transform(M)
+                }
+            }
+
+            class Matrix {
+                constructor(...rows) {
+                    this.rows = rows
+                }
+
+                columns() {
+                    return this.rows[0].map((_, i) => this.rows.map(r => r[i]))
+                }
+            }
+        
+            // https://stackoverflow.com/questions/25582882/javascript-math-random-normal-distribution-gaussian-bell-curve
+            // Standard Normal variate using Box-Muller transform.
+            function gaussianRandom(mean = 0, stdev = 1) {
+                let u = 1 - Math.random(); //Converting [0,1) to (0,1)
+                let v = Math.random();
+                let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+                // Transform to the desired mean and standard deviation:
+                return z * stdev + mean;
+            }
+
+            // https://stackoverflow.com/questions/43566019/how-to-choose-a-weighted-random-array-element-in-javascript
+            function weighted_random(items, weights) {
+                var i;
+                for (i = 1; i < weights.length; i++)
+                    weights[i] += weights[i - 1];
+
+                var random = Math.random() * weights[weights.length - 1];
+
+                for (i = 0; i < weights.length; i++)
+                    if (weights[i] > random)
+                        break;
+
+                return items[i];
+            }
+
+            var target = {
+                excitement: 0,
+                mode: 'level0',
+                loc: new Vector(0, 0),
+                direction: new Vector(100, 0),
+                velocity: 100,  // px/s
+                opacity: 0.5,
+                timeStep: 0.01, // 10ms
+                centripetal: 0,
+                radius: 0,
+                lastRadius: 0,
+                weights: { wait: 1 },
+                aversion: 0, // [0, 10]
+                lastAction: 'none',
+                activated: false,  // the target is activated by touch
+                responsive: false, // responsive target can be activated
+                active: false,     // active target moves around
+
+                availableSpace() {
+                    return [this.radius, this.radius, width - this.radius, height - this.radius]
+                },
+
+                randomLoc() {
+                    function randomInteger(min, max) {
+                        return Math.floor(Math.random() * (max - min + 1)) + min;
+                    }
+                    const space = this.availableSpace()
+                    return [randomInteger(space[0], space[2]), randomInteger(space[1], space[3])]
+                },
+
+                wait(t, callback = () => this.step()) { // In seconds!!
+                    setTimeout(callback, 1000 * t)
+                },
+
+                teleport(loc, t = 0, callback = () => this.step()) {
+                    const newLoc = new Vector(...loc)
+                    const target = this
+                    const dur = 1000 * (3 - this.velocity / 200)
+                    clearInterval(this.shapeUpdateInterval)
+                    this.shape
+                        .transition()
+                        .delay(t * 1000)
+                        .duration(dur)
+                        .ease(d3.easeExpIn)
+                        .attr('opacity', 0)
+                        .call((sel) => {
+                            sel.select('.center')
+                                .attr('r', 0)
+                            sel.select('.halo')
+                                .attr('r', 0)
+                        })
+                        .transition()
+                        .duration(0)
+                        .attr('transform', `translate(${newLoc.components.toString()})`)
+                        .on('end', () => this.loc = newLoc)
+                        .transition()
+                        .duration(dur)
+                        .ease(d3.easeExpOut)
+                        .attr('opacity', 1)
+                        .call((sel) => {
+                            sel.select('.center')
+                                .attr('r', this.radius / 2)
+                            sel.select('.halo')
+                                .attr('r', this.radius * 1.5)
+                        })
+                        .on('end', () => {
+                            target.shapeUpdateInterval = setInterval(() => target.shapeUpdate(), 10)
+                            callback()                           
+                        })
+                },
+
+                move(t, callback = () => this.step()) {
+                    const space = this.availableSpace()
+
+                    const target = this
+                    var ID
+
+                    function makeStep() {
+                        if (t <= 0) {
+                            clearInterval(ID)
+                            callback()
+                        }
+
+                        const dist = target.loc.subtract(pointer)
+                        const d = dist.length()
+                        const A = target.aversion / 10
+                        const R = target.radius
+                        var repel = new Vector(0, 0)
+                        if (A > 0 && d > R)
+                            repel = dist.normalize()
+                                .scaleBy(Math.min(A, A * R / d))
+
+                        // update direction
+                        target.direction = target.direction
+                            .add(target.direction.rotate(90).scaleBy(0.001 * target.centripetal))
+                            .add(repel)
+                            .normalize()
+
+                        // find new location
+                        var [locX, locY] = target.loc
+                            .add(target.direction
+                                .scaleBy(target.velocity * target.timeStep)
+                            ).components
+
+                        // check if it oversteps
+                        var [dirX, dirY] = target.direction.components
+
+                        if (locX <= space[0] || locX >= space[2]) {
+                            target.direction = new Vector(-dirX, dirY)
+                        }
+
+                        if (locY <= space[1] || locY >= space[3]) {
+                            target.direction = new Vector(dirX, -dirY)
+                        }
+
+                        target.loc = new Vector(
+                            Math.min(Math.max(space[0], locX), space[2]),
+                            Math.min(Math.max(space[1], locY), space[3])
+                        )
+
+                        t -= target.timeStep
+                    }
+
+                    ID = setInterval(makeStep, this.timeStep * 1000)
+                },
+
+                sharpTurn(angle, callback = () => this.step()) {
+                    this.direction = this.direction.rotate(angle)
+                    callback()
+                },
+
+                shapeUpdate() {
+                    if (!shapeUpdateActive)
+                        return;
+
+                    if (this.mode == 'level0')
+                        this.radius = 60 * this.excitement / modes[1].threshold
+
+                    this.shape
+                        .transition()
+                        .duration(10)
+                        .attr('opacity', Math.min(1, this.excitement / 200))
+
+                    this.shape
+                        .transition()
+                        .ease(d3.easeLinear)
+                        .attr('transform', `translate(${this.loc.components.toString()})`)
+
+                    this.shape.select('.center')
+                        .transition()
+                        .ease(d3.easeLinear)
+                        .attr('r', this.radius / 2)
+
+                    this.shape.select('.halo')
+                        .transition()
+                        .ease(d3.easeLinear)
+                        .attr('r', 1.5 * this.radius)
+
+                },
+
+                scoreUpdate() { 
+                    if (!scoreUpdateActive)
+                        return;
+
+                    if (this.responsive) {
+                        const loc = this.loc
+                        const dist = loc.subtract(pointer)
+                        
+                        if (dist.length() < Math.max(1.1 * this.radius, 20)) {
+                            this.activated = true
+                            this.excitement = Math.min(10001, this.excitement + 1)
+                        } else {
+                            this.excitement = Math.min(10001, Math.max(0, this.excitement - 1))
+                        }
+                    } else {
+                        this.excitement = Math.min(10001, Math.max(0, this.excitement - 2))
+                    }
+                    counterText.text(this.excitement)
+                },
+
+                modeUpdate () {
+                // Update mode
+                    if (!modeUpdateActive)
+                        return;
+                    
+                    let newMode
+
+                    for (i of modes) {
+                        if (this.excitement >= i.threshold)
+                            newMode = i.mode
+                        else break
+                    }
+
+                    if (newMode != this.mode) {
+                        console.log(`mode: ${newMode}`)
+                        Object.assign(this, ...modes.filter(v => v.mode == newMode))
+                        if (['level5', 'level6'].includes(newMode) && !targetPulseID)
+                            targetPulseID = setInterval(targetPulse, 10)
+                    }
+
+                    // Update background color
+                    defs.select('#viewportGradient')
+                        .transition()
+                        .duration(1000)
+                        .attr('r', `${Math.min(65, 65 * this.excitement / 1000)}%`)
+
+                    defs.select('#viewportGradient #edge')
+                        .transition()
+                        .duration(1000)
+                        .attr('stop-color', backgroundColor(Math.trunc(this.excitement / 100)))
+                    
+                    defs.select('#viewportGradient #center')
+                        .transition()
+                        .duration(1000)
+                        .attr('stop-color', backgroundColor(Math.min(100, Math.trunc(this.excitement / 100) + 30)))    
+
+                    updateIndicator()
+
+                    if (newMode == 'level8')
+                        peak()
+                },
+
+                step () {
+                    if (!this.active) {
+                        this.wait(1)
+                        return;
+                    }
+
+                    // Select action
+                    
+                    const actions = Object.keys(this.weights)
+                    const weights = Object.values(this.weights)
+                    const action = weighted_random(actions, weights)
+                    const t = 1 + 2 * Math.random()
+
+                    switch (action) {
+                        case 'wait': 
+                            this.wait(t)
+                            break;
+                        case 'moveForward':
+                            this.centripetal = 0
+                            this.move(t)
+                            break;
+                        case 'teleport':
+                            this.teleport(this.randomLoc(), this.lastAction == 'teleport' ? 1 : 0)
+                            break;
+                        case 'smoothTurn':
+                            this.centripetal = 12 * Math.random() - 6                        
+                            this.move(t)
+                            break;
+                        case 'sharpTurn':
+                            this.sharpTurn(360 * Math.random())
+                            break;
+                        case 'wander':
+                            var ID
+                            var timer = t
+                            function varyCentripetal() {
+                                if (timer <= 0)
+                                    clearInterval(ID)
+                                this.centripetal += Math.sign(Math.random() - 0.5)
+                                this.centripetal = Math.min(30, Math.max(-30, this.centripetal))
+                                timer -= this.timeStep
+                            }
+                            ID = setInterval(varyCentripetal, this.timeStep * 1000)
+                            this.move(t)
+                            break
+                    }
+                    this.lastAction = action
+                }
+
+
+            }
+
+            const modes = [
+                {
+                    mode: 'level0',
+                    threshold: 0,
+                    weights: { wait: 1 },
+                    velocity: 0,
+                    avoid: 0
+                },
+                {
+                    mode: 'level1',
+                    threshold: 1000,
+                    weights: { wander: 3 },
+                    velocity: 100,
+                    radius: 60,
+                    avoid: 0
+                },
+                {
+                    mode: 'level2',
+                    threshold: 2500,
+                    weights: { moveForward: 1, sharpTurn: 1 },
+                    radius: 60,
+                    velocity: 200,
+                    avoid: 0
+                },
+                {
+                    mode: 'level3',
+                    threshold: 4000,
+                    weights: { wander: 1 },
+                    radius: 50,
+                    velocity: 250,
+                    avoid: 3
+                },
+                {
+                    mode: 'level4',
+                    threshold: 5500,
+                    weights: { teleport: 1 },
+                    radius: 50,
+                    velocity: 250,
+                    avoid: 3
+                },
+                {
+                    mode: 'level5',
+                    threshold: 7000,
+                    weights: { wander: 3, sharpTurn: 3, teleport: 1 },
+                    radius: 40,
+                    velocity: 300,
+                    avoid: 5
+                },
+                {
+                    mode: 'level6',
+                    threshold: 7500,
+                    weights: { moveForward: 1, sharpTurn: 1, teleport: 1 },
+                    radius: 40,
+                    velocity: 300,
+                    avoid: 5
+                },
+                {
+                    mode: 'level7',
+                    threshold: 9000,
+                    weights: { wander: 4, sharpTurn: 2, teleport: 1 },
+                    radius: 40,
+                    velocity: 350,
+                    avoid: 7
+                },
+                {
+                    mode: 'level8',
+                    threshold: 10000,
+                    weights: { wait: 1 },
+                    radius: 0,
+                    velocity: 0,
+                    avoid: 0
+                }
+            ]
+
+            const levels = modes
+                .map(x => ({ 'mode': x.mode, 'threshold': x.threshold }))
+                .filter(x => x.mode != 'level0')
+
+            var viewportDiv = document.getElementById('viewport')   
+            var svg = d3.select('#viewport svg')
+            var things = svg.select('#things')
+            var defs = svg.select('defs')
+            var controlPanel = things.append('g')
+                .attr('class', 'controlPanel')
+            var counterText = controlPanel.append('text')
+                .attr('class', 'counter')
+            var indicatorHearts = controlPanel
+                .selectAll('g.indicatorHeart')
+                .data(levels)
+                .enter()
+                .append(() => defs.select("#smallHeart").node().cloneNode(true))
+                .attr('class', 'indicatorHeart')
+                .on('click', (d, i) => {
+                    if (finished || debugMode) {
+                        target.excitement = d.threshold + 500
+                        target.scoreUpdate()
+                        target.modeUpdate()
+                        target.shapeUpdate()
+                        updateIndicator()
+                    }
+                })
+
+            var background = svg.select('#background')
+
+            const endDisplay = svg.select('#endDisplay')
+            endDisplay
+                .on('click', () => {
+                    if (target.excitement == 0) {
+                        endDisplay
+                            .transition()
+                            .duration(3000)
+                            .attr('opacity', 0)
+                            .on('end', () => {
+                                d3.select('#endText')
+                                    .attr('opacity', 0)
+                                endDisplay.remove()
+                                start()
+                            })
+                    }
+                })
+            
+            var targetShape = svg.select('#target')
+            target.shape = targetShape
+            targetShape
+                .on('click', () => {
+                    const now = new Date()
+                    const elapsedTime = (now - startTime) / 1000
+                    if (target.active) {
+                        if (elapsedTime > 300) {
+                            target.excitement += 100
+                        } else if (elapsedTime > 150) {
+                            target.excitement += 75
+                        } else {                        
+                            target.excitement += 50
+                        }
+                        target.activated = true
+                        const targetCenterClone = targetShape.select('.center').clone()
+                        targetShape.append(() => targetCenterClone.node())
+                            .style('fill', 'none')
+                            .style('stroke', 'white')
+                            .style('stroke-width', '5px')
+                            .transition()
+                            .duration(500)
+                            .attr('r', targetShape.select('.halo').attr('r'))
+                            .style('opacity', 0)
+                            .remove()
+                    }                    
+                })
+
+            var targetHalo = targetShape.select('.halo')
+
+            var targetCenter = targetShape.select('.center')
+
+            var heart = svg.select('#bigHeart')
+
+            var width, height, center, minHeart, maxHeart, aspect
+                
+            let pointer = new Vector(0, 0)
+
+            var scoreUpdateActive = false
+            var targetUpdateActive = false
+            var targetActive = false
+            var modeUpdateActive = false
+            
+            var startTime
+
+            var finished = false
+            var debugMode = false
+
+            function resizeScreen() {
+                // The centeral part is 750x750
+                const clWidth = width = viewportDiv.clientWidth;
+                const clHeight = viewportDiv.clientHeight;
+                aspect = clWidth / clHeight
+
+                width = Math.max(750, 750 * aspect)
+                height = Math.max(750, 750 / aspect)
+
+                svg.attr('viewBox', `0 0 ${width} ${height} `)
+                
+                center = [0.5 * width, 0.5 * height]   
+
+                minHeart = 0.2 * Math.min(width, height)
+                maxHeart = 0.5 * Math.min(width, height)
+
+                target.loc = new Vector(...center)
+
+                controlPanel
+                    .attr('transform', `translate(${width / 2} ${height - 53})`)                
+
+                counterText
+                    .attr('x', 0)
+                    .attr('y', 0)
+                    .attr('opacity', debugMode ? 1 : 0)
+
+                indicatorHearts
+                    .attr('transform', (d, i) => `translate(${75 * i - 263} 20)scale(1.5)`)
+
+                heart
+                    .attr('transform', `translate(${ width / 2} ${ height / 2 })`)
+
+                d3.select('#endText')
+                    .attr('transform', 
+                        `translate(${(width - Math.min(height, width))/2} ${(height - Math.min(height, width))/2})scale(${Math.min(height, width)/200})`)
+            }
+
+            function init() {
+                startTime = new Date()
+
+                resizeScreen()
+                
+                heartBeat()
+
+                target.modeUpdateInterval = setInterval(() => target.modeUpdate(), 1000)
+                target.shapeUpdateInterval = setInterval(() => target.shapeUpdate(), 10)
+                target.scoreUpdateInterval = setInterval(() => target.scoreUpdate(), 10) 
+                target.step()
+                
+                start()
+            }
+
+            function start() {
+                endDisplay.remove()
+                target.excitement = 0
+           
+                modeUpdateActive = true
+                scoreUpdateActive = true
+                shapeUpdateActive = true
+                target.responsive = true
+                target.active = true
+                target.loc = new Vector(...center)
+
+                background.transition()
+                    .duration(3000)
+                    .style('opacity', 1)
+                    .on('end', () => {
+                        things.transition()
+                            .duration(3000)
+                            .attr('opacity', 1)
+                        controlPanel.transition()
+                            .duration(3000)
+                            .attr('opacity', 1)
+                    })
+            }
+
+            function updateIndicator() {
+                indicatorHearts
+                    .transition()
+                    .duration(250)
+                    .ease(d3.easeSinOut)
+                    .attr('opacity', d => d.threshold < target.excitement ? 0.7 : 0.2)
+                    
+                    
+            }
+            
+
+            let targetPulseID
+            let incr = 1
+            function targetPulse() {
+                if (! ['level5', 'level6'].includes(target.mode)) {
+                    clearInterval(targetPulseID)
+                    targetPulseID = null
+                }
+
+                if (target.radius <= 40)
+                    incr = 1
+
+                if (target.radius >= 60)
+                    incr = -1
+
+                target.radius += incr * 2 / 10
+            }
+
+
+            var backgroundColor = d3.scaleLinear().domain([0, 100])
+                .range(['blue', 'red'])
+            var endDisplayColor = d3.scaleLinear().domain([0, 100])
+                .range(['green', 'white'])
+
+
+            function launchSmallHeart() {
+                const loc = target.randomLoc()
+                const scale = 1 + Math.random()
+                const opacity = Math.min(1, target.excitement / 8000)
+                const multiplier = (target.excitement - 5000) / 10000 
+                const smallHeart = things.append('use')
+                    .attr('href', '#smallHeart')
+                    .attr('class', 'heart')
+                    .attr('d', "M 10,5 C 10.3,1.5 12.5,0 15,0 C 18,0 20,2 20,5.5 C 20,14 11,14 10,20 C 9, 14 0, 14 0, 5.5 C 0, 2 2, 0 5, 0 C 7.5, 0 9.7, 1.5 10, 5 Z")
+                    .attr('transform', `translate(${loc})scale(${scale})`)
+                    .on('click', function() {
+                        const now = new Date()
+                        const elapsedTime = (now - startTime) / 1000
+                        if (elapsedTime > 300) {
+                            target.excitement += 200
+                        } else if (elapsedTime > 150) {
+                            target.excitement += 150
+                        } else {                        
+                            target.excitement += 100
+                        }
+                        const currentTransform = d3.select(this).attr('transform')
+                        d3.select(this)
+                            .interrupt()
+                            .on('click', () => {})
+                            .transition()
+                            .attr('opacity', Math.max(0.3, opacity))
+                            .transition()
+                            .duration(1000)
+                            .attr('transform', currentTransform + 'scale(2)')
+                            .attr('opacity', 0)
+                            .remove()
+                    })
+
+                
+                smallHeart 
+                    .transition(1000)
+                    .ease(d3.easeElasticOut.amplitude(1).period(1))
+                    .attr('opacity', opacity)
+                    .transition()
+                    .duration(2000)
+                    .ease(d3.easeExpIn)
+                    .attr('opacity', 0)
+                    .ease(d3.easeLinear)
+                    .attr('transform', `translate(${[loc[0], loc[1] - multiplier * 250]})scale(${scale * 2 ** multiplier})`)
+                    .remove()
+            }            
+
+            function heartBeat() {
+                // Animate heart
+                const heartRate = 60 / (40 + target.excitement / 100)
+                const scale = (minHeart + (maxHeart - minHeart) * target.excitement / 10000) / 20
+                const scaledD = 'M 0.45 -4.77 C 1.17 -5.58 2.25 -6.3 4.4613 -6.3045 C 6.93 -6.3 8.9613 -4.5045 8.9613 -0.9045 C 8.9613 4.4955 3.06 6.21 0.27 9.72 C 0 10.08 0 10.08 -0.27 9.72 C -3.06 6.21 -9.0387 4.4955 -9.0387 -0.9045 C -9.0387 -4.5045 -6.93 -6.3 -4.41 -6.3 C -2.2887 -6.3045 -1.17 -5.58 -0.45 -4.77 C 0 -4.32 0 -4.32 0.45 -4.77 Z M 0.45 -3.69 C 1.53 -4.86 2.34 -5.67 4.41 -5.67 C 6.57 -5.67 8.46 -4.23 8.46 -0.99 C 8.37 3.6 4.14 5.13 0.27 8.82 C 0 9.09 0 9.09 -0.27 8.82 C -4.14 5.13 -8.46 3.6 -8.46 -0.99 C -8.37 -4.23 -6.57 -5.67 -4.41 -5.67 C -2.52 -5.67 -1.53 -4.95 -0.45 -3.69 C 0 -3.24 0 -3.24 0.45 -3.69 Z'
+                const unscaledD = 'M 0.5 -5.3 C 1.3 -6.2 2.5 -7 4.957 -7.005 C 7.7 -7 9.957 -5.005 9.957 -1.005 C 9.957 4.995 3.4 6.9 0.3 10.8 C 0 11.2 0 11.2 -0.3 10.8 C -3.4 6.9 -10.043 4.995 -10.043 -1.005 C -10.043 -5.005 -7.7 -7 -4.9 -7 C -2.543 -7.005 -1.3 -6.2 -0.5 -5.3 C 0 -4.8 0 -4.8 0.5 -5.3 Z M 0.5 -4.1 C 1.7 -5.4 2.6 -6.3 4.9 -6.3 C 7.3 -6.3 9.4 -4.7 9.4 -1.1 C 9.3 4 4.6 5.7 0.3 9.8 C 0 10.1 0 10.1 -0.3 9.8 C -4.6 5.7 -9.4 4 -9.4 -1.1 C -9.3 -4.7 -7.3 -6.3 -4.9 -6.3 C -2.8 -6.3 -1.7 -5.5 -0.5 -4.1 C 0 -3.6 0 -3.6 0.5 -4.1 Z'
+                
+                heart.select('.inner')
+                    .transition()
+                    .delay(50 * heartRate)
+                    .duration(150 * heartRate)
+                    .ease(d3.easeExpIn)
+                    .attr('transform', `scale(${scale})`)
+                    .transition()
+                    .ease(d3.easeLinear)
+                    .duration(800 * heartRate)
+
+                heart.selectAll('path')
+                    .transition()
+                    .delay(50 * heartRate)
+                    .duration(150 * heartRate)
+                    .ease(d3.easeExpIn)
+                    .attr('d', unscaledD)
+                    .transition()
+                    .ease(d3.easeLinear)
+                    .duration(800 * heartRate)
+                    .attr('d', scaledD)
+
+                heart
+                    .select('.glow')
+                    .transition()
+                    .ease(d3.easeSinIn)
+                    .duration(350 * heartRate)
+                    .attr('opacity', Math.min(1, target.excitement / 8000))
+                    .transition()
+                    .ease(d3.easeSinIn)
+                    .duration(650 * heartRate)
+                    .attr('opacity', Math.max(0, Math.min(1, target.excitement / 8000 - 0.2)))
+
+                heart
+                    .select('.lightsource')
+                    .transition()
+                    .delay(50 * heartRate)
+                    .ease(d3.easeExpIn)
+                    .duration(150 * heartRate)
+                    .attr('opacity', 0.5)
+                    .attr('d', unscaledD)
+                    .transition()
+                    .ease(d3.easeLinear)
+                    .duration(800 * heartRate)
+                    .attr('opacity', 0.3)
+                    .attr('d', scaledD)
+                    .on('end', heartBeat)
+
+                // Launch small hearts
+                if (target.excitement >= modes[1].threshold)
+                    launchSmallHeart()
+                if (target.activated) {
+                    const repeats = Math.ceil(target.excitement / 2500)
+                    for (let i = 0; i < repeats; i++)
+                        setTimeout(launchSmallHeart, i * 2 * Math.random())
+                }
+
+                
+            }
+
+            function peak() {
+                console.log('Peaking')
+
+                target.responsive = false
+                target.active = false
+                scoreUpdateActive = false
+                modeUpdateActive = false
+                shapeUpdateActive = false
+                finished = true
+                
+                targetShape.transition()
+                    .duration(3000)
+                    .attr('opacity', 0)
+                    .on('end', () => {
+                        controlPanel
+                            .transition()
+                            .duration(3000)
+                            .attr('opacity', 0.3)
+                    })
+
+
+                svg.append(()=> endDisplay.node())
+                    .attr('fill', 'white')
+                    .transition()
+                    .duration(7000)
+                    .attr('opacity', 1)
+                    .on('end', () => {
+                        scoreUpdateActive = true
+                        modeUpdateActive = true
+                        defs.select('#endDisplayGradient #center')
+                            .transition()
+                            .duration(7000)
+                            .attr('stop-color', 'black')
+                        defs.select('#endText')
+                            .transition()
+                            .delay(5000)
+                            .duration(7000)
+                            .attr('opacity', 0.7)
+                    })
+            }
+
+            init()
+
+            
+            svg.on('mousemove', function () {
+                pointer = new Vector(...d3.mouse(this))
+            })
+
+        </script>
+    </body>
+
+</html>
