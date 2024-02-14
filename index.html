@@ -48,6 +48,10 @@
                 filter: blur(15px);
                 opacity: 0.5;
             }
+            #target .clickable {
+                fill: white;
+                opacity: 0;
+            }
             .glow {
                 fill: rgb(#ff80b0);
             }
@@ -170,6 +174,7 @@
                     <g id="target" opacity="0">
                         <circle class="halo"/>
                         <circle class="center"/>
+                        <circle class="clickable"/>
                     </g>
                 </g>    
                 <rect id='endDisplay' x="0" y="0" width="100%" height="100%" fill="white" mask="url(#endDisplayMask)" opacity="0"/>
@@ -323,6 +328,8 @@
                                 .attr('r', 0)
                             sel.select('.halo')
                                 .attr('r', 0)
+                            sel.select('.clickable')
+                                .attr('r', 0)
                         })
                         .transition()
                         .duration(0)
@@ -337,6 +344,8 @@
                                 .attr('r', this.radius / 2)
                             sel.select('.halo')
                                 .attr('r', this.radius * 1.5)
+                            sel.select('.clickable')
+                                .attr('r', this.radius * 1)
                         })
                         .on('end', () => {
                             target.shapeUpdateInterval = setInterval(() => target.shapeUpdate(), 10)
@@ -430,6 +439,11 @@
                         .transition()
                         .ease(d3.easeLinear)
                         .attr('r', 1.5 * this.radius)
+
+                    this.shape.select('.clickable')
+                        .transition()
+                        .ease(d3.easeLinear)
+                        .attr('r', 1 * this.radius)
 
                 },
 
@@ -659,6 +673,8 @@
                             .duration(3000)
                             .attr('opacity', 0)
                             .on('end', () => {
+                                defs.select('#endDisplayGradient #center')
+                                    .attr('stop-color', 'white')
                                 d3.select('#endText')
                                     .attr('opacity', 0)
                                 endDisplay.remove()
